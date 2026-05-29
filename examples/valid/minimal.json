@@ -1,0 +1,88 @@
+{
+  "@type": "SD-DBN",
+  "version": "3.0",
+  "id": "doc-minimal-001",
+  "subject": "subject-001",
+  "schema": {
+    "variables": [
+      {
+        "id": "S_context",
+        "kind": "situation",
+        "domain": ["false", "true"]
+      },
+      {
+        "id": "X_state",
+        "kind": "latent",
+        "role": "state",
+        "domain": ["absent", "present"]
+      },
+      {
+        "id": "O_statement",
+        "kind": "observation",
+        "domain": ["unobserved", "observed"]
+      }
+    ],
+    "relations": [
+      {
+        "id": "r_context_state",
+        "type": "conditioning",
+        "scheme": "CONDITIONS",
+        "from": "S_context",
+        "to": "X_state",
+        "cpd": {
+          "direction": "increase",
+          "strength": "moderate"
+        }
+      },
+      {
+        "id": "r_state_statement",
+        "type": "emission",
+        "scheme": "MANIFESTS_AS",
+        "from": "X_state",
+        "to": "O_statement",
+        "cpd": {
+          "present→observed": 0.8,
+          "absent→observed": 0.2
+        }
+      }
+    ]
+  },
+  "events": [
+    {
+      "id": "e1",
+      "seq": 1,
+      "time": {
+        "abs": "2026-05-29T00:00:00"
+      },
+      "type": "situated",
+      "variable": "S_context",
+      "value": "true",
+      "evidence_state": "agreed"
+    },
+    {
+      "id": "e2",
+      "seq": 2,
+      "time": {
+        "abs": "2026-05-29T00:01:00"
+      },
+      "type": "observed",
+      "variable": "O_statement",
+      "value": "observed"
+    },
+    {
+      "id": "e3",
+      "seq": 3,
+      "time": {
+        "abs": "2026-05-29T00:02:00"
+      },
+      "type": "believed",
+      "variable": "X_state",
+      "posterior": {
+        "present": 0.8,
+        "absent": 0.2
+      },
+      "from_observation": "e2",
+      "evidence_state": "agreed"
+    }
+  ]
+}

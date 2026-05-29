@@ -1,0 +1,617 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://salescore-inc.github.io/sd-dbn-format/schemas/3.0/sd-dbn.schema.json",
+  "title": "SD-DBN Document",
+  "description": "Situated Dynamic Bayesian Network document format.",
+  "type": "object",
+  "required": ["@type", "version", "id", "subject", "schema", "events"],
+  "additionalProperties": false,
+  "properties": {
+    "@type": {
+      "const": "SD-DBN"
+    },
+    "version": {
+      "const": "3.0"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "subject": {
+      "type": "string",
+      "minLength": 1
+    },
+    "schema_revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "supersedes": {
+      "type": ["string", "null"]
+    },
+    "schema": {
+      "$ref": "#/$defs/schema"
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/event"
+      }
+    },
+    "subject_meta": {
+      "type": "object"
+    },
+    "current_beliefs": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/probabilityDistribution"
+      }
+    },
+    "carryover": {
+      "type": "object",
+      "required": ["from", "prior_beliefs"],
+      "additionalProperties": false,
+      "properties": {
+        "from": {
+          "type": "string",
+          "minLength": 1
+        },
+        "prior_beliefs": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/probabilityDistribution"
+          }
+        }
+      }
+    }
+  },
+  "dependentRequired": {
+    "supersedes": ["schema_revision"]
+  },
+  "$defs": {
+    "schema": {
+      "type": "object",
+      "required": ["variables", "relations"],
+      "additionalProperties": false,
+      "properties": {
+        "variables": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/variable"
+          }
+        },
+        "relations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/relation"
+          }
+        }
+      }
+    },
+    "variable": {
+      "type": "object",
+      "required": ["id", "kind", "domain"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": ["situation", "latent", "observation"]
+        },
+        "domain": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "role": {
+          "enum": ["state", "goal", "means", "obstacle", "factor"]
+        },
+        "text": {
+          "type": "string"
+        },
+        "subkind": {
+          "type": "string"
+        },
+        "desired_values": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "undesired_values": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "frame": {
+          "type": "object"
+        },
+        "ext_ref": true
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "latent"
+              }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "required": ["role"]
+          }
+        }
+      ]
+    },
+    "relation": {
+      "type": "object",
+      "required": ["id", "type", "scheme", "from", "to"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "enum": ["situational", "conditioning", "inference", "conflict", "preference", "emission"]
+        },
+        "scheme": {
+          "enum": [
+            "CAUSES",
+            "COMPOSES",
+            "RESOLVES",
+            "REALIZES",
+            "MANIFESTS_AS",
+            "EXPLAINS",
+            "CONFLICTS",
+            "PREFERS",
+            "MOTIVATES",
+            "CONDITIONS",
+            "HAS_PROPERTY",
+            "PERFORMS"
+          ]
+        },
+        "from": {
+          "type": "string",
+          "minLength": 1
+        },
+        "to": {
+          "type": "string",
+          "minLength": 1
+        },
+        "subrelation": {
+          "type": "string"
+        },
+        "cpd": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/probabilityDistribution"
+            },
+            {
+              "type": "object",
+              "required": ["direction", "strength"],
+              "additionalProperties": false,
+              "properties": {
+                "direction": {
+                  "enum": ["increase", "decrease"]
+                },
+                "strength": {
+                  "enum": ["weak", "moderate", "strong"]
+                }
+              }
+            }
+          ]
+        },
+        "rationale": {
+          "type": "string"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "scheme": {
+                "const": "RESOLVES"
+              }
+            },
+            "required": ["scheme"]
+          },
+          "then": {
+            "required": ["cpd"]
+          }
+        }
+      ]
+    },
+    "event": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/situatedEvent"
+        },
+        {
+          "$ref": "#/$defs/observedEvent"
+        },
+        {
+          "$ref": "#/$defs/believedEvent"
+        },
+        {
+          "$ref": "#/$defs/transitionEvent"
+        },
+        {
+          "$ref": "#/$defs/arguedEvent"
+        }
+      ]
+    },
+    "eventBase": {
+      "type": "object",
+      "required": ["id", "seq", "time", "type"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "time": {
+          "$ref": "#/$defs/instant"
+        },
+        "type": {
+          "enum": ["situated", "observed", "believed", "transition", "argued"]
+        },
+        "variable": {
+          "type": "string",
+          "minLength": 1
+        },
+        "relation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "caused_by": {
+          "type": "string"
+        },
+        "rationale": {
+          "type": "string"
+        },
+        "by_perspective": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
+        "evidence_state": {
+          "$ref": "#/$defs/evidenceState"
+        },
+        "attack_type": {
+          "$ref": "#/$defs/attackType"
+        },
+        "consensus": {
+          "$ref": "#/$defs/consensus"
+        },
+        "embedded": {
+          "type": "object"
+        }
+      }
+    },
+    "situatedEvent": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/eventBase"
+        },
+        {
+          "type": "object",
+          "required": ["type", "variable", "value"],
+          "properties": {
+            "type": {
+              "const": "situated"
+            },
+            "value": true,
+            "valid": {
+              "$ref": "#/$defs/interval"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "observedEvent": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/eventBase"
+        },
+        {
+          "type": "object",
+          "required": ["type", "variable", "value"],
+          "properties": {
+            "type": {
+              "const": "observed"
+            },
+            "value": true,
+            "media_origin": {
+              "$ref": "#/$defs/mediaOrigin"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "believedEvent": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/eventBase"
+        },
+        {
+          "type": "object",
+          "required": ["type", "variable", "posterior"],
+          "properties": {
+            "type": {
+              "const": "believed"
+            },
+            "posterior": {
+              "$ref": "#/$defs/probabilityDistribution"
+            },
+            "prior": {
+              "$ref": "#/$defs/probabilityDistribution"
+            },
+            "from_observation": {
+              "type": "string"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "transitionEvent": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/eventBase"
+        },
+        {
+          "type": "object",
+          "required": ["type", "variable"],
+          "properties": {
+            "type": {
+              "const": "transition"
+            },
+            "to_value": true,
+            "posterior": {
+              "$ref": "#/$defs/probabilityDistribution"
+            },
+            "from_value": true,
+            "elapsed": {
+              "$ref": "#/$defs/duration"
+            }
+          },
+          "anyOf": [
+            {
+              "required": ["to_value"]
+            },
+            {
+              "required": ["posterior"]
+            }
+          ]
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "arguedEvent": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/eventBase"
+        },
+        {
+          "type": "object",
+          "required": ["type", "relation_id", "evidence_state"],
+          "not": {
+            "required": ["variable"]
+          },
+          "properties": {
+            "type": {
+              "const": "argued"
+            },
+            "from_observation": {
+              "type": "string"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "evidence_state": {
+                    "const": "rejected"
+                  }
+                },
+                "required": ["evidence_state"]
+              },
+              "then": {
+                "required": ["attack_type"]
+              }
+            }
+          ]
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "instant": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["abs"],
+          "additionalProperties": false,
+          "properties": {
+            "abs": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["rel"],
+          "additionalProperties": false,
+          "properties": {
+            "rel": {
+              "type": "object",
+              "required": ["base", "elapsed"],
+              "additionalProperties": false,
+              "properties": {
+                "base": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "elapsed": {
+                  "$ref": "#/$defs/durationValue"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["media"],
+          "additionalProperties": false,
+          "properties": {
+            "media": {
+              "type": "object",
+              "required": ["source", "offset"],
+              "additionalProperties": false,
+              "properties": {
+                "source": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "offset": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "interval": {
+      "type": "object",
+      "required": ["from", "to"],
+      "additionalProperties": false,
+      "properties": {
+        "from": {
+          "$ref": "#/$defs/instant"
+        },
+        "to": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/instant"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "duration": {
+      "type": "object",
+      "required": ["value"],
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "$ref": "#/$defs/durationValue"
+        }
+      }
+    },
+    "durationValue": {
+      "type": "string",
+      "pattern": "^P|^PT"
+    },
+    "mediaOrigin": {
+      "type": "object",
+      "required": ["source", "started_at"],
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "started_at": {
+          "$ref": "#/$defs/instant"
+        }
+      }
+    },
+    "probabilityDistribution": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      }
+    },
+    "consensus": {
+      "type": "object",
+      "required": ["agreement", "tally", "judgments"],
+      "additionalProperties": false,
+      "properties": {
+        "agreement": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "tally": {
+          "type": "object",
+          "required": ["record", "discard", "abstain"],
+          "additionalProperties": false,
+          "properties": {
+            "record": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "discard": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "abstain": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "judgments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["agent", "verdict"],
+            "additionalProperties": false,
+            "properties": {
+              "agent": {
+                "type": "string",
+                "minLength": 1
+              },
+              "verdict": {
+                "enum": ["record", "discard", "abstain"]
+              },
+              "state": {
+                "$ref": "#/$defs/evidenceState"
+              },
+              "rationale": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "evidenceState": {
+      "enum": ["agreed", "mentioned", "rejected"]
+    },
+    "attackType": {
+      "enum": ["rebut", "undercut", "undermine"]
+    },
+    "stringArray": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

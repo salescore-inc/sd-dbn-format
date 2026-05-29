@@ -27,6 +27,8 @@ The JSON Schema validates static structure: required fields, primitive types, en
 
 Reference integrity and semantic conformance, such as relation endpoint constraints, `posterior` domain alignment, `current_beliefs` consistency, and revision policy checks, are validator responsibilities described in the specification.
 
+Agent assignment, independent judgments, consensus aggregation, evaluation reports, and advice generation are application or skill responsibilities. They are not part of the SD-DBN core format.
+
 ## Status
 
 This repository is the public home for the SD-DBN format. The schema should evolve with versioned compatibility rules.

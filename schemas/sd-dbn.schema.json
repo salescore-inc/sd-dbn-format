@@ -285,9 +285,6 @@
         "attack_type": {
           "$ref": "#/$defs/attackType"
         },
-        "consensus": {
-          "$ref": "#/$defs/consensus"
-        },
         "embedded": {
           "type": "object"
         }
@@ -545,60 +542,6 @@
         "type": "number",
         "minimum": 0,
         "maximum": 1
-      }
-    },
-    "consensus": {
-      "type": "object",
-      "required": ["agreement", "tally", "judgments"],
-      "additionalProperties": false,
-      "properties": {
-        "agreement": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 1
-        },
-        "tally": {
-          "type": "object",
-          "required": ["record", "discard", "abstain"],
-          "additionalProperties": false,
-          "properties": {
-            "record": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "discard": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "abstain": {
-              "type": "integer",
-              "minimum": 0
-            }
-          }
-        },
-        "judgments": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": ["agent", "verdict"],
-            "additionalProperties": false,
-            "properties": {
-              "agent": {
-                "type": "string",
-                "minLength": 1
-              },
-              "verdict": {
-                "enum": ["record", "discard", "abstain"]
-              },
-              "state": {
-                "$ref": "#/$defs/evidenceState"
-              },
-              "rationale": {
-                "type": "string"
-              }
-            }
-          }
-        }
       }
     },
     "evidenceState": {

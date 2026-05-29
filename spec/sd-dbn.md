@@ -1,5 +1,5 @@
 # SD-DBN フォーマット仕様 v3.0
-## Situated Dynamic Bayesian Network — 状況づき動的ベイジアンネットワーク (追記ログ型)
+## Situated Dynamic Bayesian Network — 状況づき動的ベイジアンネットワーク
 
 ---
 
